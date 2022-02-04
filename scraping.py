@@ -65,5 +65,4 @@ def start(argument):
     writingData(scrapingWebsite(webpage[0], webpage[1], webpage[2]), position)
     position += 1
   
-  
 start()
