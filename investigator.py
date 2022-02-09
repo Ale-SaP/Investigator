@@ -87,8 +87,8 @@ def start(argument):
          links = returns[1]
 
       #writing every headline
-      for headline in headlines:
-         my_sheet.cell(row=rowNumber, column=columnNumber).value = headline
+      for headlns in headlines:
+         my_sheet.cell(row=rowNumber, column=columnNumber).value = headlns
          rowNumber += 3
       
       #writing every link
