@@ -25,37 +25,48 @@ class website():
         Headlines = []
         Links = []
         
-        #perhaps the select way is better for getting everything, I should try it.
+        
+        if (self.scrapingStyle == "basic") :
+            #Getting the headlines is easy
+            for x in soup.find_all(f"{self.tag}", class_= f"{self.chosenClass}"):
+                Headlines.append((x.get_text()).strip())
 
-        #Getting the headlines is easy
-        for x in soup.find_all(f"{self.tag}", class_= f"{self.chosenClass}"):
-            Headlines.append((x.get_text()).strip())
+            #Getting the links not so much
+            for y in soup.find_all(f"{self.tag}", class_= f"{self.chosenClass}", href = True):
+                aquiredLink = y.get("href")
 
-        #Getting the links not so much
-        for y in soup.find_all(f"{self.tag}", class_= f"{self.chosenClass}", href = True):
-            aquiredLink = y.get("href")
-
-            #if the link is a string and its not only a part of the whole webpage link, we add it
-            if ((aquiredLink.find(self.link) == 1) and (type(aquiredLink) == str)):
-                Links.append(aquiredLink)
-            
-            #If it is a string but only a part of the real link, we add it plus the missing part
-            elif ((aquiredLink.find(self.link) > 1) and (type(aquiredLink) == str)):
-                Links.append(self.link + aquiredLink)
-            
-            #If the element didn't have any hrefs, we will search on its children
-            elif (type(aquiredLink) != str):  
-                children = str(y.findChildren())
-                children = children.split('"')
-                index = children.index(" href=")
-                aquiredLink = children[index + 1]
-                
-                #Again, same conditions as before to check if the link is complete
+                #if the link is a string and its not only a part of the whole webpage link, we add it
                 if ((aquiredLink.find(self.link) == 1) and (type(aquiredLink) == str)):
                         Links.append(aquiredLink)
-                    
-                elif ((aquiredLink.find(self.link) > 1) and (type(aquiredLink) == str)):
+
+                    #If it is a string but only a part of the real link, we add it plus the missing part
+                    elif ((aquiredLink.find(self.link) < 1) and (type(aquiredLink) == str)):
                         Links.append(self.link + aquiredLink)
+
+                    #If the element didn't have any hrefs, we will search on its children
+                    elif (type(aquiredLink) != str):  
+                        children = str(y.findChildren())
+                        children = children.split('"')
+                        index = children.index(" href=")
+                        aquiredLink = children[index + 1]
+
+                        #Again, same conditions as before to check if the link is complete
+                        if ((aquiredLink.find(self.link) == 1) and (type(aquiredLink) == str)):
+                                Links.append(aquiredLink)
+
+                        elif ((aquiredLink.find(self.link) > 1) and (type(aquiredLink) == str)):
+                                Links.append(self.link + aquiredLink)
+                            
+         elif (self.scrapingStyle == "select"):
+             for x in range(11):
+                 for element in soup.select(f"#tablelibgen > tbody:nth-child(2) > tr:nth-child({x}) > td:nth-child(1) > a"):
+                     if (element == None): pass 
+                     elif not ((element.get_text()).startswith("DOI")): 
+                         Headlines.append(element.get_text())
+                         if ((element.get("href")).find("self.link") < 1):
+                             Links.append(self.link + element.get("href"))
+                         else: Links.append(element.get("href"))
+            
 
         return(Headlines, Links)
 
@@ -63,8 +74,7 @@ class website():
 
         #Checking if the first cell of a new column is empty, if it is it will start writing on it, if not it'll search for another
         m = 2
-        while ((my_sheet.cell(row=1, column=m).value != None) or
-        (my_sheet.cell(row= 1 , column = m).value != "")):
+        while ((my_sheet.cell(row=1, column=m).value != None) or (my_sheet.cell(row= 1 , column = m).value != "")):
             m += 1
 
         titles = HeadsAndLinks[0]
@@ -78,18 +88,7 @@ class website():
             my_sheet.cell(row = n+1, column = m).value = link
             n += 3
         
-        my_wb.save("INVESTIGATOR.xlsx")
-
-def initPyxl(self):
-    #creating the xlsx file
-    my_wb = openpyxl.Workbook()
-    my_sheet = my_wb.active
-
-    #putting the number of the search results
-    for n in range(1, 31):
-        if (n % 3 == 0):
-            my_sheet.cell(row=n, column=1).value = (n/3)
-
+      
 pubmed = website("Pubmed", "https://pubmed.ncbi.nlm.nih.gov/?term=~°Ñ°~", "https://pubmed.ncbi.nlm.nih.gov",
 "a", "docsum-title", "basic")
 scholar = website("Scholar", "https://scholar.google.com/scholar?hl=es&as_sdt=0%2C5&q=~°Ñ°~&btnG=", "https://scholar.google.com/" 
@@ -100,7 +99,21 @@ researchgate = website("ResearchGate","https://www.researchgate.net/search/publi
 elsevier = website("Elsevier", "https://www.elsevier.com/search-results?query=~°Ñ°~", "https://www.elsevier.com/", 
 "h2", "search-result-title", "basic")
 libgen = website("Libgen", "https://libgen.li/index.php?req=[~°Ñ°~&columns%5B%5D=t&columns%5B%5D=a&columns%5B%5D=s&columns%5B%5D=y&columns%5B%5D=p&columns%5B%5D=i&objects%5B%5D=f&objects%5B%5D=e&objects%5B%5D=s&objects%5B%5D=a&objects%5B%5D=p&objects%5B%5D=w&topics%5B%5D=l&topics%5B%5D=a&topics%5B%5D=m&topics%5B%5D=s&res=25"
-"libgen.li", "", "", "libgen")
+"libgen.li", "", "", "select")
 
 listOfPages = [pubmed, scholar, researchgate, elsevier, libgen]
 
+def starting(argument):
+    #creating the xlsx file
+    my_wb = openpyxl.Workbook()
+    my_sheet = my_wb.active
+
+    #putting the number of the search results
+    for n in range(1, 31):
+        if (n % 3 == 0):
+            my_sheet.cell(row=n, column=1).value = (n/3)
+            
+    for webpage in listOfWebpages:
+        webpage.writing(my_sheet, my_wb, webpage.scraping(argument))+
+        
+    my_wb.save("INVESTIGATOR.xlsx")
