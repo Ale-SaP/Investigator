@@ -8,4 +8,4 @@ Instead of making 8 different searches, do a single one and get the first page o
 
 
 ### How can I use it?
-At the moment you can replace the value at the bottom of the file, on writing.
+At the moment, you can replace the value at the bottom of the file, on writing.
