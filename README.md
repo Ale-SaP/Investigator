@@ -2,7 +2,7 @@
 ## Find data for your academic life easily.
 
 
-###Instead of making 8 different searches, do a single one and get the first page of results!
+### Instead of making 8 different searches, do a single one and get the first page of results!
 
 
 #### How can I use it?
