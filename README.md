@@ -1,4 +1,4 @@
-# Investigator
+# Easier Investigations
 ## Find data for your academic life easily.
 
 
