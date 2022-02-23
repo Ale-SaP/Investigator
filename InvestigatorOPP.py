@@ -14,7 +14,11 @@ class website():
         self.chosenClass = chosenClass
         self.scrapingStyle = scrapingType
     
-
+    def checkIfHasLink(self, argument):
+        if ( (argument.startswith("https://") != 1) or (argument.startswith("http://") != 1) ):
+            return(self.link + argument)
+        else: return(argument)
+        
     def scraping(self, argument):
         # "~°Ñ°~" is placed where the search term should be, so we can replace it with the argument here
         self.searchLink = self.searchLink.replace("~°Ñ°~", argument)
@@ -37,24 +41,18 @@ class website():
                 x = (str(x)).split('"')
                 index = 0
 
-                #This is surely not the best way to do it, but ERIC just kept refusing to index href and god-knows-why I had to substract 1, rather than add 1 like the rest
+                #This is surely not the best way to do it, but ERIC just kept refusing to index href so I had to substract 1, rather than add 1 like the rest
                 try: 
                     index = x.index(" href=") + 1
                 except:
                     for element in x:
                         if element.find("href="): index = x.index(element) - 1
 
-                aquiredLink = x[index] #position of href + 1 yields the link, due to (...|"|, href=|"|https://www.nejm.org/doi/full/10.1056/NEJMra1901594|") (| is split)
-
                 #this is to check if the link is complete
-                if ((aquiredLink.startswith("https://")) or (aquiredLink.startswith("http://")) ):
-                    Links.append(aquiredLink)
-
-                else:
-                    Links.append(self.link + aquiredLink)
+                Links.append(checkIfHasLink(x[index]))
 
                             
-        #some pages were not friendly to scraping due to not having classes, so i had to use the select method and iterate on a css selector.
+        #Another way to get everything, more efficient but its not always supported
         elif (self.scrapingStyle == "select"):
 
             for x in range(11):
@@ -64,34 +62,29 @@ class website():
                 
                 for x in selectedHtml:
                     Headlines.append(x.get_text())
-                    aquiredLink = x.get("href")
-                    if ((aquiredLink.startswith("https://")) or (aquiredLink.startswith("http://"))): 
-                        Links.append(aquiredLink)
-                    else: 
-                        Links.append(self.link + aquiredLink)
+                    Links.append(checkIfHasLink(x.get("href")))
 
         print(f"{self.name} scrapping completed")
         return(Headlines, Links)
 
 
 pubmed = website("Pubmed", "https://pubmed.ncbi.nlm.nih.gov/?term=~°Ñ°~", "https://pubmed.ncbi.nlm.nih.gov/",
-"a", "docsum-title", "basic")
+"article.full-docsum:nth-child(~°Ñ°~) > div:nth-child(2) > div:nth-child(1) > a:nth-child(1)", "", "select")
 
 scholar = website( "Scholar", "https://scholar.google.com/scholar?hl=es&as_sdt=0%2C5&q=~°Ñ°~&btnG=", "",
-"h3", "gs_rt", "basic")
+"div.gs_or:nth-child(~°Ñ°~) > div:nth-child(2) > h3", "", "select")
 
-researchgate = website("ResearchGate","https://www.researchgate.net/search/publication?q=~°Ñ°~", "https://www.researchgate.net/", "div",
-"nova-legacy-e-text nova-legacy-e-text--size-l nova-legacy-e-text--family-sans-serif nova-legacy-e-text--spacing-none nova-legacy-e-text--color-inherit nova-legacy-v-publication-item__title",
-"basic")
+researchgate = website("ResearchGate","https://www.researchgate.net/search/publication?q=~°Ñ°~", "https://www.researchgate.net/", 
+"html.js-focus-visible body.logged-out.responsive div#page-container div#main.logged-out-header-support div#content div#rgw5_621618528b280.react-container div.search div.search__content div.search-content div.js-changing-content div.search-results-container.js-search-results-container div.search-indent-container div.indent-left.search-indent-left div.js-items div.nova-legacy-o-stack.nova-legacy-o-stack--gutter-xs.nova-legacy-o-stack--spacing-none.nova-legacy-o-stack--no-gutter-outside div.nova-legacy-o-stack__item div.nova-legacy-c-card.nova-legacy-c-card--spacing-xl.nova-legacy-c-card--elevation-1-above div.nova-legacy-c-card__body.nova-legacy-c-card__body--spacing-inherit div.nova-legacy-v-publication-item.nova-legacy-v-publication-item--size-m div.nova-legacy-v-publication-item__body div.nova-legacy-v-publication-item__stack.nova-legacy-v-publication-item__stack--gutter-m div.nova-legacy-v-publication-item__stack-item div.nova-legacy-e-text.nova-legacy-e-text--size-l.nova-legacy-e-text--family-sans-serif.nova-legacy-e-text--spacing-none.nova-legacy-e-text--color-inherit.nova-legacy-v-publication-item__title", "", "basic")
 
 elsevier = website("Elsevier", "https://www.elsevier.com/search-results?query=~°Ñ°~", "https://www.elsevier.com/", 
-"h2", "search-result-title", "basic")
+"article.search-result:nth-child(~°Ñ°~) > header:nth-child(1) > h2:nth-child(1) > a", "", "select")
 
 libgen = website("Libgen", "https://libgen.is/scimag/?q=~°Ñ°~",
 "https://libgen.is/", ".catalog > tbody:nth-child(2) > tr:nth-child(~°Ñ°~) > td:nth-child(2) > p:nth-child(1) > a:nth-child(1)", "", "select")
 
 basesearch = website("Bielefeld Academic Search Engine", "https://www.base-search.net/Search/Results?lookfor=~°Ñ°~&name=&oaboost=1&newsearch=1&refid=dcbasen",
-"https://www.base-search.net/" ,"a" ,"bold", "basic")
+"https://www.base-search.net/", "html body div#wrapper div.container main#maincontent div.row div#hit-list-box.col-sm-8.col-lg-9 form#exportForm fieldset div#hit-list div.record-panel.panel.panel-default div.panel-heading div.row.row-eq-height div.row-eq-height.col-xs-11" ,"", "select")
 
 eric = website("ERIC", "https://eric.ed.gov/?q=~°Ñ°~", "https://eric.ed.gov/?q=a%", "div", "r_t", "basic")
 
